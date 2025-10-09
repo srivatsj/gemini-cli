@@ -12,11 +12,13 @@ import {
   createContentGeneratorConfig,
 } from './contentGenerator.js';
 import { createCodeAssistContentGenerator } from '../code_assist/codeAssist.js';
+import { createStudioContentGenerator } from '../studio/studio.js';
 import { GoogleGenAI } from '@google/genai';
 import type { Config } from '../config/config.js';
 import { LoggingContentGenerator } from './loggingContentGenerator.js';
 
 vi.mock('../code_assist/codeAssist.js');
+vi.mock('../studio/studio.js');
 vi.mock('@google/genai');
 
 const mockConfig = {} as unknown as Config;
@@ -102,6 +104,23 @@ describe('createContentGenerator', () => {
         (mockGenerator as GoogleGenAI).models,
         mockConfig,
       ),
+    );
+  });
+
+  it('should create a Studio content generator', async () => {
+    const mockGenerator = {} as unknown as ContentGenerator;
+    vi.mocked(createStudioContentGenerator).mockResolvedValue(
+      mockGenerator as never,
+    );
+    const generator = await createContentGenerator(
+      {
+        authType: AuthType.STUDIO,
+      },
+      mockConfig,
+    );
+    expect(createStudioContentGenerator).toHaveBeenCalled();
+    expect(generator).toEqual(
+      new LoggingContentGenerator(mockGenerator, mockConfig),
     );
   });
 });

@@ -5,6 +5,7 @@
  */
 
 import {
+  AuthType,
   IdeClient,
   IdeConnectionEvent,
   IdeConnectionType,
@@ -39,8 +40,10 @@ export async function initializeApp(
   );
   const themeError = validateTheme(settings);
 
+  const selectedAuthType = settings.merged.security?.auth?.selectedType;
   const shouldOpenAuthDialog =
-    settings.merged.security?.auth?.selectedType === undefined || !!authError;
+    (selectedAuthType === undefined || !!authError) &&
+    selectedAuthType !== AuthType.STUDIO;
 
   if (config.getIdeMode()) {
     const ideClient = await IdeClient.getInstance();

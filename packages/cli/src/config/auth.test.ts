@@ -36,6 +36,10 @@ describe('validateAuthMethod', () => {
     expect(validateAuthMethod(AuthType.CLOUD_SHELL)).toBeNull();
   });
 
+  it('should return null for STUDIO', () => {
+    expect(validateAuthMethod(AuthType.STUDIO)).toBeNull();
+  });
+
   describe('USE_GEMINI', () => {
     it('should return null if GEMINI_API_KEY is set', () => {
       vi.stubEnv('GEMINI_API_KEY', 'test-key');

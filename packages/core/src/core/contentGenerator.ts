@@ -14,6 +14,7 @@ import type {
 } from '@google/genai';
 import { GoogleGenAI } from '@google/genai';
 import { createCodeAssistContentGenerator } from '../code_assist/codeAssist.js';
+import { createStudioContentGenerator } from '../studio/studio.js';
 import type { Config } from '../config/config.js';
 
 import type { UserTierId } from '../code_assist/types.js';
@@ -46,6 +47,7 @@ export enum AuthType {
   USE_GEMINI = 'gemini-api-key',
   USE_VERTEX_AI = 'vertex-ai',
   CLOUD_SHELL = 'cloud-shell',
+  STUDIO = 'studio',
 }
 
 export type ContentGeneratorConfig = {
@@ -69,10 +71,11 @@ export function createContentGeneratorConfig(
     proxy: config?.getProxy(),
   };
 
-  // If we are using Google auth or we are in Cloud Shell, there is nothing else to validate for now
+  // If we are using Google auth, Cloud Shell, or Studio, there is nothing else to validate for now
   if (
     authType === AuthType.LOGIN_WITH_GOOGLE ||
-    authType === AuthType.CLOUD_SHELL
+    authType === AuthType.CLOUD_SHELL ||
+    authType === AuthType.STUDIO
   ) {
     return contentGeneratorConfig;
   }
@@ -120,6 +123,13 @@ export async function createContentGenerator(
         gcConfig,
         sessionId,
       ),
+      gcConfig,
+    );
+  }
+
+  if (config.authType === AuthType.STUDIO) {
+    return new LoggingContentGenerator(
+      await createStudioContentGenerator(config.authType, gcConfig, sessionId),
       gcConfig,
     );
   }
