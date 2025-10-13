@@ -9,8 +9,10 @@ import { createStudioContentGenerator } from './studio.js';
 import { AuthType } from '../core/contentGenerator.js';
 import type { Config } from '../config/config.js';
 import { GoogleGenAI } from '@google/genai';
+import * as studioAuth from './studioAuth.js';
 
 vi.mock('@google/genai');
+vi.mock('./studioAuth.js');
 
 const mockConfig = {} as unknown as Config;
 
@@ -24,7 +26,9 @@ describe('createStudioContentGenerator', () => {
   });
 
   it('should create a Studio content generator with valid token', async () => {
-    vi.stubEnv('STUDIO_AUTH_TOKEN', 'test-studio-token');
+    vi.mocked(studioAuth.getStudioAuthToken).mockResolvedValue(
+      'test-studio-token',
+    );
 
     const mockGenerator = {
       models: {},
@@ -36,6 +40,7 @@ describe('createStudioContentGenerator', () => {
       mockConfig,
     );
 
+    expect(studioAuth.getStudioAuthToken).toHaveBeenCalled();
     expect(GoogleGenAI).toHaveBeenCalledWith({
       apiKey: '',
       vertexai: false,
@@ -51,14 +56,14 @@ describe('createStudioContentGenerator', () => {
     expect(generator).toBe(mockGenerator.models);
   });
 
-  it('should throw error if STUDIO_AUTH_TOKEN is not set', async () => {
-    vi.stubEnv('STUDIO_AUTH_TOKEN', undefined);
+  it('should throw error if token retrieval fails', async () => {
+    vi.mocked(studioAuth.getStudioAuthToken).mockRejectedValue(
+      new Error('API_KEY environment variable is required'),
+    );
 
     await expect(
       createStudioContentGenerator(AuthType.STUDIO, mockConfig),
-    ).rejects.toThrow(
-      'STUDIO_AUTH_TOKEN environment variable is required for Studio authentication',
-    );
+    ).rejects.toThrow('API_KEY environment variable is required');
   });
 
   it('should throw error for unsupported auth type', async () => {

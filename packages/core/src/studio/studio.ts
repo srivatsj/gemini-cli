@@ -8,6 +8,7 @@ import type { ContentGenerator } from '../core/contentGenerator.js';
 import { AuthType } from '../core/contentGenerator.js';
 import type { Config } from '../config/config.js';
 import { GoogleGenAI } from '@google/genai';
+import { getStudioAuthToken } from './studioAuth.js';
 
 export async function createStudioContentGenerator(
   authType: AuthType,
@@ -18,13 +19,7 @@ export async function createStudioContentGenerator(
     const version = process.env['CLI_VERSION'] || process.version;
     const userAgent = `GeminiCLI/${version} (${process.platform}; ${process.arch})`;
 
-    // TODO: Need to fetch auth token from monospace
-    const authToken = process.env['STUDIO_AUTH_TOKEN'];
-    if (!authToken) {
-      throw new Error(
-        'STUDIO_AUTH_TOKEN environment variable is required for Studio authentication',
-      );
-    }
+    const authToken = await getStudioAuthToken();
 
     const httpOptions = {
       baseUrl: 'https://monospace-pa.googleapis.com',
